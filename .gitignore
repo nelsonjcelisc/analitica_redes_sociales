@@ -1,0 +1,29 @@
+# --- Seguridad (Credenciales) ---
+accounts.json
+.env
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+.pytest_cache/
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+
+# --- Docker & Logs ---
+.docker/
+logs/
+*.log
+
+# --- Datos Locales ---
+# Excluimos la carpeta de datos de Mongo si decides mapearla fuera de volúmenes
+data/
+
+# Ignorar todas las sesiones de Playwright
+sessions/*.json
+# Pero mantener la carpeta en Git (opcional)
+!sessions/.gitkeep

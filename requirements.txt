@@ -1,0 +1,4 @@
+pymongo
+playwright
+pandas
+nbformat

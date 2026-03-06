@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Base de Datos NoSQL para los Tweets
+  mongodb:
+    image: mongo:latest
+    container_name: social_analytics_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Entorno para análisis y visualización de datos
+  jupyter:
+    image: jupyter/minimal-notebook:latest
+    container_name: social_analytics_notebook
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./data:/home/jovyan/data
+    environment:
+      - JUPYTER_TOKEN=analitica_x  # Token simple para entrar
+    depends_on:
+      - mongodb
+
+  # Contenedor para ejecutar los scripts de recolección (Scraper)
+  worker_scraper:
+    build: .
+    container_name: social_analytics_worker
+    command: tail -f /dev/null 
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/app  # MAPEAMOS TODO EL PROYECTO A /app
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+    working_dir: /app/src # Los scripts están en src
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo_data:
