@@ -17,19 +17,23 @@ def main():
 
     accounts = load_accounts()
 
+    # En src/main.py
     for acc in accounts:
         print(f"--- Iniciando recolección para: {acc['label']} ---")
         try:
-            # 1. Conectarse a X y obtener tweets
-            #tweets_found = scrape_x_feed(acc['username'], acc['password'], num_tweets=15)
+            # 1. Obtener tweets
             tweets_found = scrape_x_feed(session_path=acc['session_file'], num_tweets=15)
             
             # 2. Guardar en MongoDB
-            for tweet in tweets_found:
-                db.save_tweet(acc['label'], tweet)
+            if tweets_found:
+                print(f"DEBUG: Intentando guardar {len(tweets_found)} tweets en Mongo...")
+                for tweet in tweets_found:
+                    # Aquí llamamos a la base de datos
+                    db.save_tweet(acc['label'], tweet)
+                print(f"✅ Finalizado: {len(tweets_found)} tweets procesados para {acc['label']}.")
+            else:
+                print("⚠️ No se encontraron tweets para procesar.")
                 
-            print(f"Finalizado: {len(tweets_found)} tweets procesados para {acc['label']}.")
-            
         except Exception as e:
             print(f"Error crítico en la cuenta {acc['label']}: {e}")
 

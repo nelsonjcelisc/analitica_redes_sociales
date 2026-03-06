@@ -4,33 +4,27 @@ from datetime import datetime
 
 class SocialDatabase:
     def __init__(self):
-        # Usamos la URI definida en el docker-compose
-        mongo_uri = os.getenv("MONGO_URI", "mongodb://mongodb:27017/")
-        self.client = MongoClient(mongo_uri)
+        # Si estamos en Docker, usa 'mongodb'. Si estamos local, usa 'localhost'.
+        self.mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+        self.client = MongoClient(self.mongo_uri)
         self.db = self.client["social_analytics"]
-        self.collection = self.db["tweets"]
 
     def save_tweet(self, account_label, tweet_data):
-        """
-        Guarda un tweet o actualiza las cuentas que lo han visto.
-        """
-        query = {"tweet_id": tweet_data["tweet_id"]}
-        
-        # Estructura del documento para facilitar la analítica cruzada
-        update = {
-            "$set": {
-                "content": tweet_data["content"],
-                "author": tweet_data["author"],
-                "timestamp_posted": tweet_data["timestamp_posted"]
-            },
-            "$addToSet": { "seen_by_accounts": account_label }, # Evita duplicados en la lista
-            "$push": { "detection_history": {
-                "account": account_label,
-                "detected_at": datetime.utcnow()
-            }}
-        }
-        
-        self.collection.update_one(query, update, upsert=True)
+        try:
+            # Forzamos el nombre de la colección
+            collection = self.db["tweets"]
+            tweet_data["account_label"] = account_label
+            
+            # Usamos update_one con upsert para evitar duplicados
+            collection.update_one(
+                {"tweet_id": tweet_data["tweet_id"]},
+                {"$set": tweet_data},
+                upsert=True
+            )
+            # Si llegamos aquí, se guardó. No necesitamos la variable 'result' para confirmar.
+            print(f"  [DB] Tweet {tweet_data['tweet_id']} procesado.")
+        except Exception as e:
+            print(f"  [DB] Error al guardar: {e}")
 
     def check_connection(self):
         try:

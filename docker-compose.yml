@@ -32,10 +32,10 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - .:/app  # MAPEAMOS TODO EL PROYECTO A /app
+      - .:/app  # Mapeo espejo de tu carpeta actual
     environment:
       - MONGO_URI=mongodb://mongodb:27017/
-    working_dir: /app/src # Los scripts están en src
+    working_dir: /app
     depends_on:
       - mongodb
 

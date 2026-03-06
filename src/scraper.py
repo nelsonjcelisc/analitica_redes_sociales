@@ -4,81 +4,74 @@ import time
 from datetime import datetime
 from playwright.sync_api import sync_playwright, TimeoutError
 
-# Configuración de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def scrape_x_feed(session_path: str, num_tweets: int = 15) -> list[dict]:
     results = []
+    
+    # Aseguramos que la carpeta de sesiones exista
+    os.makedirs(os.path.dirname(session_path), exist_ok=True)
 
-    if not os.path.exists(session_path):
-        logging.error(f"No se encontró el archivo de sesión en '{session_path}'.")
-        return results
+    with sync_playwright() as p:
+        # Lanzamos HEADLESS=FALSE para que puedas ver y loguearte si es necesario
+        # En Linux/Ubuntu (Flappy) esto abrirá una ventana de Chromium
+        browser = p.chromium.launch(headless=True) 
+        
+        # Intentamos cargar el estado si existe
+        if os.path.exists(session_path):
+            context = browser.new_context(storage_state=session_path)
+            logging.info(f"Cargando sesión existente: {session_path}")
+        else:
+            context = browser.new_context()
+            logging.info("No se encontró sesión. Por favor, inicia sesión manualmente en la ventana.")
 
-    try:
-        with sync_playwright() as p:
-            # Importante: X detecta comportamientos automatizados. 
-            # Lanzamos chromium con un user_agent estándar.
-            browser = p.chromium.launch(headless=True)
-            context = browser.new_context(
-                storage_state=session_path,
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-            )
-            page = context.new_page()
+        page = context.new_page()
+        page.goto("https://x.com/home")
+
+        try:
+            # Esperamos a ver un tweet. Si no aparece en 30s, asumimos que necesitas loguearte.
+            logging.info("Esperando validación de feed (tienes 60s para loguearte si es necesario)...")
+            page.wait_for_selector('article[data-testid="tweet"]', timeout=60000)
             
-            logging.info(f"Navegando a X con sesión: {session_path}")
-            page.goto("https://x.com/home", wait_until="domcontentloaded")
+            # --- ¡MAGIA! Guardamos el estado una vez logueados ---
+            context.storage_state(path=session_path)
+            logging.info(f"✅ Sesión guardada/actualizada en {session_path}")
 
-            #1. Espera extra para conexiones lentas o renderizado pesado
-            time.sleep(10) 
-
-            # 2. CAPTURA DE PANTALLA (Crucial para Nelson)
-            # Esto guardará una imagen en tu carpeta data/ de lo que ve el bot
-            screenshot_path = "/app/data/debug_x.png"
-            page.screenshot(path=screenshot_path)
-            logging.info(f"📸 Captura de pantalla guardada en {screenshot_path}")
-
-            # 3. Intenta detectar el tweet
-            page.wait_for_selector('article[data-testid="tweet"]', timeout=20000)
-            
-            # Scroll suave para asegurar que carguen los elementos
-            page.mouse.wheel(0, 500)
+            # Scroll y extracción
+            page.mouse.wheel(0, 1000)
+            time.sleep(2)
             
             tweet_elements = page.query_selector_all('article[data-testid="tweet"]')[:num_tweets]
+            logging.info(f"Extrayendo {len(tweet_elements)} tweets...")
 
             for element in tweet_elements:
                 try:
-                    # 1. Extraer el ID del tweet (está en el enlace del timestamp)
-                    # El enlace suele tener formato /usuario/status/123456789
+                    # ID del Tweet
                     link_element = element.query_selector('a[href*="/status/"]')
                     if not link_element: continue
-                    
-                    tweet_url = link_element.get_attribute("href")
-                    tweet_id = tweet_url.split("/")[-1]
+                    tweet_id = link_element.get_attribute("href").split("/")[-1]
 
-                    # 2. Extraer el Autor
-                    author_element = element.query_selector('div[data-testid="User-Name"]')
-                    author = author_element.inner_text().split("\n")[1] if author_element else "unknown"
+                    # Autor
+                    author_el = element.query_selector('div[data-testid="User-Name"]')
+                    author = author_el.inner_text().split("\n")[1] if author_el else "unknown"
 
-                    # 3. Extraer el Contenido de texto
-                    content_element = element.query_selector('div[data-testid="tweetText"]')
-                    content = content_element.inner_text() if content_element else ""
+                    # Texto
+                    content_el = element.query_selector('div[data-testid="tweetText"]')
+                    content = content_el.inner_text() if content_el else ""
 
                     results.append({
                         "tweet_id": tweet_id,
                         "author": author,
                         "content": content,
-                        "timestamp_detected": datetime.utcnow()
+                        "timestamp_posted": datetime.utcnow().isoformat(), # Cambiamos el nombre aquí
+                        "timestamp_detected": datetime.utcnow().isoformat() 
                     })
                 except Exception as e:
-                    logging.warning(f"Error parseando un tweet individual: {e}")
                     continue
 
+        except TimeoutError:
+            logging.error("No se pudo cargar el feed. ¿Te logueaste correctamente?")
+        finally:
             browser.close()
-            logging.info(f"Extracción finalizada. {len(results)} tweets obtenidos.")
-
-    except TimeoutError:
-        logging.error(f"Timeout: El feed no cargó. ¿Sesión expirada en {session_path}?")
-    except Exception as e:
-        logging.error(f"Error inesperado: {e}")
 
     return results
