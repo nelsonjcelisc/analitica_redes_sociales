@@ -25,19 +25,26 @@ services:
       - mongodb
 
   # Contenedor para ejecutar los scripts de recolección (Scraper)
-  worker_scraper:
-    build: .
-    container_name: social_analytics_worker
-    command: tail -f /dev/null 
-    stdin_open: true
-    tty: true
-    volumes:
-      - .:/app  # Mapeo espejo de tu carpeta actual
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/
-    working_dir: /app
-    depends_on:
-      - mongodb
+  # worker_scraper:
+  #   build: .
+  #   container_name: social_analytics_worker
+  #   command: tail -f /dev/null 
+  #   stdin_open: true
+  #   tty: true
+  #   volumes:
+  #     - .:/app  # Mapeo espejo de tu carpeta actual
+  #   environment:
+  #     - TZ=America/Bogota
+  #     - MONGO_URI=mongodb://localhost:27017/
+  #     - DISPLAY=${DISPLAY:-:0} # Toma el display del host
+  #     - /tmp/.X11-unix:/tmp/.X11-unix # Comparte el socket de video
+  #     - $HOME/.Xauthority:/root/.Xauthority # Comparte los permisos
+  #   network_mode: host # Esto facilita enormemente el forwarding
+  #   working_dir: /app
+  #   depends_on:
+  #     - mongodb
+    #docker exec -it -u root social_analytics_worker apt-get update
+    #docker exec -it -u root social_analytics_worker apt-get install -y xauth libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2 libpango-1.0-0 libcairo2
 
 volumes:
   mongo_data:
