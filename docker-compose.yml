@@ -5,6 +5,7 @@ services:
   mongodb:
     image: mongo:latest
     container_name: social_analytics_db
+    restart: unless-stopped
     ports:
       - "27017:27017"
     volumes:
@@ -14,6 +15,7 @@ services:
   jupyter:
     image: jupyter/minimal-notebook:latest
     container_name: social_analytics_notebook
+    restart: unless-stopped
     ports:
       - "8888:8888"
     volumes:
