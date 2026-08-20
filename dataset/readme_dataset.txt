@@ -1,10 +1,7 @@
 ========================================================================================
 DATASET Y DOCUMENTACIÓN COMPLETA DE LA INVESTIGACIÓN MATEMÁTICA IB
 ========================================================================================
-Autor: Andrés Celis
-Colegio: Colegio Hontanar
-Asignatura: Matemáticas: Análisis y Enfoques NM (Bachillerato Internacional)
-Año: 2026
+
 Título del Proyecto: Auditoría de Algoritmos de Recomendación en la Red Social X
 ========================================================================================
 
