@@ -35,11 +35,11 @@ Estructura de las columnas en el archivo CSV:
 ----------------------------------------------------------------------------------------
   • tweets_dataset.csv: Matriz completa de datos (33,675 registros).
   • readme_dataset.txt: Este archivo descriptivo.
-  • Andres Celis_Exploración matemática.docx: Documento master en formato Word con portada,
-    índice, 8 gráficas incrustadas, tablas de contingencia y metadatos del autor.
-  • Andres Celis_Exploracion Matematica.ipynb: Cuaderno Jupyter ejecutable y 100% pre-renderizado
+  • Exploración matemática.docx: Documento master en formato Word con portada,
+    índice, 8 gráficas incrustadas y tablas de contingencia.
+  • Exploracion_Matematica.ipynb: Cuaderno Jupyter ejecutable y 100% pre-renderizado
     con los 8 módulos del tutorial de Poisson, NLP y dispersión semántica 3D.
-  • Andres Celis_Exploracion Matematica.pdf: Versión exportada en PDF del Jupyter Notebook.
+  • Exploracion_Matematica.pdf: Versión exportada en PDF del Jupyter Notebook.
   • images/: Carpeta con las 8 gráficas exportadas en alta resolución (PNG).
 
 ========================================================================================
