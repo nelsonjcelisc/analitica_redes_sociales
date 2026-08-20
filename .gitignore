@@ -1,3 +1,10 @@
+# --- Documentos y Archivos Privados / Internos ---
+*.docx
+*.pdf
+IB interna/
+IB*/
+ib*/
+
 # --- Seguridad (Credenciales) ---
 accounts.json
 .env
